@@ -1,0 +1,81 @@
+#![allow(non_snake_case, non_upper_case_globals)]
+
+pub mod bootstrap;
+
+macro_rules! new_hook {
+    ($orig:ident, $hook:ident) => (
+        let hachimi = crate::core::Hachimi::instance();
+        if !hachimi.config.load().disabled_hooks.contains(stringify!($hook)) {
+            info!("new_hook!: {}", stringify!($hook));
+            if ($orig != 0) {
+                let res = hachimi.interceptor.hook($orig as usize, $hook as usize);
+                if let Err(e) = res {
+                    error!("{}", e);
+                }
+            }
+            else {
+                error!("{} is null", stringify!($orig));
+            }
+        }
+        else {
+            info!("[DISABLED] new_hook!: {}", stringify!($hook));
+        }
+    )
+}
+
+macro_rules! get_assembly_image_or_return {
+    ($var_name:ident, $assembly_name:tt) => (
+        let $var_name = match crate::il2cpp::symbols::get_assembly_image(cstr!($assembly_name)) {
+            Ok(v) => v,
+            Err(e) => {
+                error!("{}", e);
+                return;
+            }
+        };
+    )
+}
+
+macro_rules! get_class_or_return {
+    ($image:ident, $namespace:tt, $class_name:ident) => (
+        let $class_name = match crate::il2cpp::symbols::get_class($image, cstr!($namespace), cstr!($class_name)) {
+            Ok(v) => v,
+            Err(e) => {
+                error!("{}", e);
+                return;
+            }
+        };
+    )
+}
+
+#[allow(unused)]
+macro_rules! find_nested_class_or_return {
+    ($parent:ident, $class_name:ident) => (
+        let $class_name = match crate::il2cpp::symbols::find_nested_class($parent, cstr!($class_name)) {
+            Ok(v) => v,
+            Err(e) => {
+                error!("{}", e);
+                return;
+            }
+        };
+    )
+}
+
+macro_rules! impl_addr_wrapper_fn {
+    ($name:tt, $addr:tt, $ret:ty, $($v:ident: $t:ty),*) => {
+        pub fn $name($($v: $t),*) -> $ret {
+            let orig_fn: extern "C" fn($($v: $t),*) -> $ret = unsafe { std::mem::transmute($addr) };
+            orig_fn($($v),*)
+        }
+    };
+}
+
+pub mod UnityEngine_CoreModule;
+
+pub fn init() {
+    info!("Initializing il2cpp hooks");
+
+    // Unity
+    UnityEngine_CoreModule::init();
+
+    info!("Hooking finished");
+}
