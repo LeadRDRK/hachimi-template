@@ -14,7 +14,8 @@ When using this template to make your own mod, remember to:
 - Disclose your mod's source code under [GNU GPLv3](LICENSE).
 
 ### Windows
-To inject your mod on Windows, rename the dll to `winhttp.dll` or `version.dll` and put it in the game's directory.
+- Injecting the mod: Rename the dll to `winhttp.dll` or `version.dll` and put it in the game's directory.
+- Logs are written to `OutputDebugStringW`. You can use [DebugView](https://learn.microsoft.com/en-us/sysinternals/downloads/debugview) to view them.
 
 ### Android
 You may use the scripts included in [`tools/android`](tools/android) to build the mod. See the README file included in [`tools`](tools) and [`tools/android`](tools/android) for more info.
@@ -24,6 +25,8 @@ To inject your mod on Android:
 2. Rename the `libmain.so` file in each of the folders inside `lib` to `libmain_orig.so`.
 3. Copy the proxy libraries to their corresponding folders (e.g. `libmain-arm64-v8a.so` goes to `lib/arm64-v8a`). Rename them to `libmain.so`.
 4. Build the APK file and install it.
+
+You can view the logs through logcat. The log tag is your mod's package name.
 
 # License
 [GNU GPLv3](LICENSE)
